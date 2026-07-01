@@ -124,6 +124,16 @@ nav{
   transition:opacity .18s,transform .18s;overflow:hidden;
 }
 .nav-dropdown.open .dropdown-menu{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0)}
+/* Dropdown Serviços: abre ao passar o rato e com foco de teclado */
+.nav-dropdown:focus-within>a svg{transform:rotate(180deg)}
+.nav-dropdown:focus-within .dropdown-menu{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0)}
+@media(hover:hover){
+  .nav-dropdown>a{position:relative}
+  .nav-dropdown>a::after{content:"";position:absolute;top:100%;left:0;right:0;height:16px}
+  .nav-dropdown:hover>a{color:var(--azul)}
+  .nav-dropdown:hover>a svg{transform:rotate(180deg)}
+  .nav-dropdown:hover .dropdown-menu{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0)}
+}
 .dropdown-item{
   display:flex;align-items:center;gap:12px;
   padding:12px 16px;text-decoration:none;color:var(--preto);
@@ -546,7 +556,6 @@ nav{
   if(savedLang&&savedLang!=='pt') setLang(savedLang);
   const dd=document.querySelector('.nav-dropdown');
   if(dd){
-    dd.querySelector('a').addEventListener('click',e=>{e.preventDefault();dd.classList.toggle('open')});
     dd.querySelectorAll('.dropdown-item').forEach(i=>i.addEventListener('click',()=>dd.classList.remove('open')));
     document.addEventListener('click',e=>{if(!dd.contains(e.target))dd.classList.remove('open')});
   }
@@ -569,7 +578,9 @@ nav{
   var ham=document.querySelector('.hamburger'),mm=document.getElementById('mobileMenu');
   if(ham&&mm){new MutationObserver(function(){ham.setAttribute('aria-expanded',mm.classList.contains('open'))}).observe(mm,{attributes:true,attributeFilter:['class']});}
   var ddw=document.querySelector('.nav-dropdown');
-  if(ddw){var dda=ddw.querySelector('a');new MutationObserver(function(){dda.setAttribute('aria-expanded',ddw.classList.contains('open'))}).observe(ddw,{attributes:true,attributeFilter:['class']});}
+  if(ddw){var dda=ddw.querySelector('a');var sync=function(v){dda.setAttribute('aria-expanded',v)};
+    ddw.addEventListener('mouseenter',function(){sync(true)});ddw.addEventListener('mouseleave',function(){sync(false)});
+    ddw.addEventListener('focusin',function(){sync(true)});ddw.addEventListener('focusout',function(){sync(false)});}
 })();
 </script>
 </body>
