@@ -62,37 +62,6 @@
     "Trabalhos em Altura"
   ]
 }
-
-
-// Accordion exclusivo — só um aberto de cada vez
-function toggleSrv(id) {
-  const all = document.querySelectorAll('.srv-detalhe');
-  all.forEach(el => {
-    if (el.id !== id) el.classList.remove('open');
-  });
-  document.getElementById(id).classList.toggle('open');
-}
-
-// Galeria com thumbnails
-function galSelect(galId, idx) {
-  lbImgs = Array.from(document.getElementById(galId).querySelectorAll(\'.galeria-thumb\')).map(t => t.getAttribute(\'src\'));
-  lbIdx = idx;
-  const gal = document.getElementById(galId);
-  const main = gal.querySelector('.galeria-main img');
-  const thumbs = gal.querySelectorAll('.galeria-thumb');
-  main.src = thumbs[idx].src;
-  thumbs.forEach(t => t.classList.remove('active'));
-  thumbs[idx].classList.add('active');
-  gal.dataset.current = idx;
-}
-function galNav(galId, dir) {
-  const gal = document.getElementById(galId);
-  const thumbs = gal.querySelectorAll('.galeria-thumb');
-  let current = parseInt(gal.dataset.current || 0);
-  current = (current + dir + thumbs.length) % thumbs.length;
-  galSelect(galId, current);
-}
-
 </script>
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
