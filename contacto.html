@@ -258,6 +258,10 @@ nav{
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:24px}
 .btn-enviar{margin-top:36px;width:100%;background:#fff;color:var(--preto);font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;font-weight:500;padding:16px;border:none;border-radius:6px;cursor:pointer;transition:opacity .15s}
 .btn-enviar:hover{opacity:.88}
+.btn-enviar:disabled{opacity:.6;cursor:default}
+.form-status{margin-top:16px;font-size:13px;min-height:1em}
+.form-status.ok{color:#7FE0A8}
+.form-status.err{color:#F29999}
 .reviews-section{padding:80px 60px;background:var(--creme);border-top:1px solid var(--linha)}
 .reviews-inner{max-width:1200px;margin:0 auto}
 .reviews-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:48px}
@@ -349,11 +353,11 @@ nav{
       </div>
     </div>
   </div>
-  <!-- Envio via mailto: (sem backend, funciona em qualquer alojamento).
-       Para receber os pedidos automaticamente, substituir o handler enviarOrcamento()
-       por um serviço de formulários (Formspree / Web3Forms) ou, se ficar no Netlify,
-       adicionar data-netlify="true" e name="contacto" a este <form>. -->
   <form class="reveal" id="form-orcamento" novalidate onsubmit="return enviarOrcamento(event)">
+    <input type="hidden" name="access_key" value="a632ace6-34cf-4534-979f-ef84ad73ac27">
+    <input type="hidden" name="subject" value="Novo pedido de orçamento — Site AGT">
+    <input type="hidden" name="from_name" value="Site AGT">
+    <input type="checkbox" name="botcheck" style="display:none" tabindex="-1" autocomplete="off">
     <div class="form-row">
       <div class="form-field"><label for="f-nome" data-pt="Nome" data-en="Name">Nome</label><input id="f-nome" name="nome" type="text" autocomplete="name" required data-pt="O seu nome" data-en="Your name" placeholder="O seu nome"></div>
       <div class="form-field"><label for="f-tel" data-pt="Telefone" data-en="Phone">Telefone</label><input id="f-tel" name="telefone" type="tel" autocomplete="tel" required placeholder="9XX XXX XXX"></div>
@@ -372,17 +376,38 @@ nav{
       </select>
     </div>
     <div class="form-field"><label for="f-msg" data-pt="Mensagem" data-en="Message">Mensagem</label><textarea id="f-msg" name="mensagem" required data-pt="Descreva o trabalho que pretende realizar…" data-en="Describe the work…" placeholder="Descreva o trabalho que pretende realizar…"></textarea></div>
-    <button type="submit" class="btn-enviar" data-pt="Enviar mensagem" data-en="Send message">Enviar mensagem</button>
+    <button type="submit" class="btn-enviar" id="btn-enviar" data-pt="Enviar mensagem" data-en="Send message">Enviar mensagem</button>
+    <p id="form-status" class="form-status" role="status" aria-live="polite"></p>
   </form>
   <script>
   function enviarOrcamento(e){
     e.preventDefault();
     var f=e.target;
     if(!f.checkValidity()){f.reportValidity();return false;}
-    var nome=f.nome.value.trim(),tel=f.telefone.value.trim(),email=f.email.value.trim(),servico=f.servico.value,msg=f.mensagem.value.trim();
-    var assunto='Pedido de orçamento'+(servico?(' — '+servico):'');
-    var corpo='Nome: '+nome+'\nTelefone: '+tel+'\nEmail: '+email+'\nServiço: '+(servico||'—')+'\n\nMensagem:\n'+msg;
-    window.location.href='mailto:agt.obras@gmail.com?subject='+encodeURIComponent(assunto)+'&body='+encodeURIComponent(corpo);
+    var btn=document.getElementById('btn-enviar');
+    var status=document.getElementById('form-status');
+    var pt={sending:'A enviar…',ok:'✓ Mensagem enviada. Entraremos em contacto brevemente.',err:'Não foi possível enviar. Tente novamente ou ligue-nos.'};
+    var en={sending:'Sending…',ok:'✓ Message sent. We will get back to you shortly.',err:'Could not send. Please try again or call us.'};
+    var L=(document.documentElement.lang==='en')?en:pt;
+    btn.disabled=true; var original=btn.textContent; btn.textContent=L.sending;
+    status.className='form-status'; status.textContent='';
+
+    fetch('https://api.web3forms.com/submit',{
+      method:'POST',
+      headers:{'Content-Type':'application/json',Accept:'application/json'},
+      body:JSON.stringify(Object.fromEntries(new FormData(f)))
+    }).then(function(r){return r.json()}).then(function(data){
+      if(data.success){
+        status.textContent=L.ok; status.classList.add('ok');
+        f.reset();
+      } else {
+        status.textContent=L.err; status.classList.add('err');
+      }
+    }).catch(function(){
+      status.textContent=L.err; status.classList.add('err');
+    }).finally(function(){
+      btn.disabled=false; btn.textContent=original;
+    });
     return false;
   }
   </script>
